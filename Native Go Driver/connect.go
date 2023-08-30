@@ -4,15 +4,13 @@ package main
 
 import (
 	"database/sql"
-	"log"
-
 	"fmt"
-
-	_ "github.com/lib/pq"
+	"log"
 )
 
 func main() {
 
+	// Connecting to database
 	connStr := "user=postgres dbname=apple password=rabin@123 sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 
@@ -26,15 +24,16 @@ func main() {
 	// Note:- The db.Query() function returns two values the first value is the pointer to the data and the second value is the error message if any
 
 	// Create
-	// {
-	// 	res, err := db.Query("CREATE TABLE students(f_name varchar(30),l_name varchar(30),roll_no int , PRIMARY KEY(roll_no))")
-	// 	if err != nil {
-	// 		fmt.Println("error", err)
-	// 	} else {
-	// 		fmt.Println("Query executed successfully\n", res)
-	// 	}
-	// }
-	// Read
+	{
+		res, err := db.Query("CREATE TABLE students(f_name varchar(30),l_name varchar(30),roll_no int , PRIMARY KEY(roll_no))")
+		if err != nil {
+			fmt.Println("error", err)
+		} else {
+			fmt.Println("Query executed successfully\n", res)
+		}
+	}
+
+	// Insert
 	{
 		res, err := db.Query("INSERT INTO students VALUES('Ashwin','Adhikari',2)")
 
@@ -45,7 +44,9 @@ func main() {
 		}
 	}
 
-	// update
+	// Read
+
+	// Update
 	{
 		res, err := db.Query("UPDATE students set l_name = 'Nepal' 	WHERE roll_no = 1")
 
