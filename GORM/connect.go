@@ -28,7 +28,7 @@ func main() {
 	db.AutoMigrate(&User{})
 
 	// Insert
-	user1 := User{ID: 2, Name: "Ashwin", Age: 24}
+	user1 := User{ID: 2, Name: "hello", Age: 24}
 	user2 := User{ID: 3, Name: "Rabin", Age: 23}
 	user3 := User{ID: 4, Name: "Kishan", Age: 38}
 
@@ -38,9 +38,17 @@ func main() {
 
 	// Read
 	var data User
-	db.First(&data, 1) // find product with integer primary key
-	fmt.Println(user1)
+	db.First(&data, 2) // find product with integer primary key (id = 2)
+	fmt.Println(data)
 
 	// update
+	result := db.Model(User{}).Where("ID= ?", 2).Updates(User{Name: "hello", Age: 18})
+
+	fmt.Println("The effected rows are ", result.RowsAffected) // returns updated records count
+	fmt.Println("Updatin error", result.Error)                 // returns updating error
+
+	// delete
+	db.Where("ID = ?", 4).Delete(&User{}) // deletes data with Id = 4
+	db.Delete(&user3)                     // deletes data with Id = 4 same as above line
 
 }
