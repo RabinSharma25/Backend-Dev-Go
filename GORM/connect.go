@@ -25,31 +25,58 @@ func main() {
 	}
 	// Create
 
-	// Migrate the schema, the below line of code basically creates an empty table
-	db.AutoMigrate(&User{})
+	// // Migrate the schema, the below line of code basically creates an empty table
+	// db.AutoMigrate(&User{})
 
-	// Insert
-	user1 := User{ID: 2, Name: "hello", Age: 24}
-	user2 := User{ID: 3, Name: "Rabin", Age: 23}
-	user3 := User{ID: 4, Name: "Kishan", Age: 38}
+	// // Insert
+	// user1 := User{ID: 2, Name: "hello", Age: 24}
+	// user2 := User{ID: 3, Name: "Rabin", Age: 23}
+	// user3 := User{ID: 4, Name: "Kishan", Age: 38}
 
-	db.Create(&user1)
-	db.Create(&user2)
-	db.Create(&user3)
+	// db.Create(&user1)
+	// db.Create(&user2)
+	// db.Create(&user3)
 
-	// Read
-	var data User
-	db.First(&data, 2) // find product with integer primary key (id = 2)
-	fmt.Println(data)
+	// // Read
+	// var data User
+	// db.First(&data, 2) // find product with integer primary key (id = 2)
+	// fmt.Println(data)
 
-	// update
-	result := db.Model(User{}).Where("ID= ?", 2).Updates(User{Name: "hello", Age: 18})
+	// // update
+	// result := db.Model(User{}).Where("ID= ?", 2).Updates(User{Name: "hello", Age: 18})
 
-	fmt.Println("The effected rows are ", result.RowsAffected) // returns updated records count
-	fmt.Println("Updatin error", result.Error)                 // returns updating error
+	// fmt.Println("The effected rows are ", result.RowsAffected) // returns updated records count
+	// fmt.Println("Updatin error", result.Error)                 // returns updating error
 
-	// delete
-	db.Where("ID = ?", 4).Delete(&User{}) // deletes data with Id = 4
-	db.Delete(&user3)                     // deletes data with Id = 4 same as above line
+	// // delete
+	// db.Where("ID = ?", 4).Delete(&User{}) // deletes data with Id = 4
+	// db.Delete(&user3)                     // deletes data with Id = 4 same as above line
+
+	transact(db) // calling the function
+
+}
+
+func transact(db *gorm.DB) {
+	tx := db.Begin() // begining a new transaction
+
+	user4 := User{ID: 8, Name: "Sunny", Age: 29}
+	user5 := User{ID: 9, Name: "Rocky", Age: 20}
+
+	result := tx.Create(&user4) // insert user4 to database
+
+	if result.Error != nil {
+		fmt.Println("Error inserting to databse", result.Error)
+		tx.Rollback()
+	}
+	fmt.Println("Successfully inserted user4 to database")
+
+	result = tx.Create(&user5) // insert user5 to database
+	if result.Error != nil {
+		fmt.Println("Error inserting to databse", result.Error)
+		tx.Rollback()
+	}
+	fmt.Println("Successfully inserted user4 to database")
+
+	tx.Commit() // commiting the transaction
 
 }

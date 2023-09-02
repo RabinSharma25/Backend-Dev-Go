@@ -1,4 +1,4 @@
-// CRUD opeations using native go driver for prosgreSQL
+// CRUD opeations using native go driver for prosgreSQL i.e pq
 
 package main
 
