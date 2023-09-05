@@ -6,8 +6,14 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "<h1>Hello world</h1>") // sending a h1 tag
-	fmt.Fprintf(w, "This is Rabin")        // sending a string
+	switch r.URL.Path {
+	case "/":
+		fmt.Fprint(w, "<h1>Hello this is the root route</h1>")
+	case "/cat":
+		fmt.Fprint(w, "<h1>Hello this is the cat route</h1>")
+	case "/dog":
+		fmt.Fprint(w, "<h1>Hello this is the dog route</h1>")
+	}
 }
 
 func main() {
