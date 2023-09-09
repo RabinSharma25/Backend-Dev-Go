@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
+type emp struct {
 	Email    string `gorm:"unique;not null"`
 	Password string `gorm:"not null"`
 }
@@ -25,64 +25,75 @@ func main() {
 	} else {
 		fmt.Println("Successfully connected to database", db)
 	}
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&emp{})
 	router := gin.Default()
 
 	// Set up routes
-	// TODO: Define routes for login, registration, and home pages
 	router.POST("/register", registerHandler(db))
 	router.POST("/login", loginHandler(db))
-	router.GET("/home", homeHandler)
-	router.GET("/register", getRegHandler)
-	router.GET("/login", getLogHandler)
+
 	router.Run(":8080")
-}
-
-func homeHandler(c *gin.Context) {
-	c.File("home.html")
-}
-
-func getRegHandler(c *gin.Context) {
-	c.File("register.html")
-}
-
-func getLogHandler(c *gin.Context) {
-	c.File("login.html")
 }
 
 func loginHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		email := c.PostForm("email")
-		password := c.PostForm("password")
+		var user emp
+		var userlogin emp // struct instance to store the temporary login data from user
 
-		var user User
+		// Bind JSON data from the request body to the User struct
+		// The code below will actually capture the data sent from postman
+		if err := c.ShouldBindJSON(&userlogin); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Log the received JSON data to the console
+		fmt.Printf("Received JSON data from Postman: %+v\n", user)
+
+		token := "dummy-jwt-token"
+
 		// Find the user by email
-		if err := db.Where("email = ?", email).First(&user).Error; err != nil {
-			c.HTML(http.StatusUnauthorized, "login.html", gin.H{"Error": "Invalid credentials"})
+		if err := db.Where("email = ?", userlogin.Email).First(&user).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
 		// Compare the stored hash with the input password
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-			c.HTML(http.StatusUnauthorized, "login.html", gin.H{"Error": "Invalid credentials"})
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userlogin.Password)); err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Password Mismatch"})
 			return
 		}
 
-		// Successful login
-		// TODO: Set a session or token to remember the user's login state
+		// Return the token as the response
 
-		// Redirect to the home page
-		c.Redirect(http.StatusSeeOther, "/home")
+		c.JSON(http.StatusOK, gin.H{"token": token})
+		c.JSON(http.StatusOK, gin.H{"Login Successful": token})
+		fmt.Println(token)
+
 	}
 }
 
 func registerHandler(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		email := c.PostForm("email")
-		password := c.PostForm("password")
+		var user emp
+
+		// Bind JSON data from the request body to the User struct
+		// capture the data sent from postman
+		if err := c.ShouldBindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Log the received JSON data to the console
+		fmt.Printf("Received JSON data from Postman: %+v\n", user)
+
+		// send a response
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "User registered successfully",
+		})
 
 		// Hash the user's password before storing it in the database
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
 			// Handle the error
 			c.HTML(http.StatusInternalServerError, "register.html", gin.H{"Error": "Failed to hash password"})
@@ -90,8 +101,8 @@ func registerHandler(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// Create a new user record in the database
-		newUser := User{
-			Email:    email,
+		newUser := emp{
+			Email:    user.Email,
 			Password: string(hashedPassword),
 		}
 
@@ -101,10 +112,5 @@ func registerHandler(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		// Successful registration
-		// TODO: Set a session or token to remember the user's login state
-
-		// Redirect to the home page or login page
-		c.Redirect(http.StatusSeeOther, "/login")
 	}
 }
