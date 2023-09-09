@@ -134,20 +134,13 @@ func main() {
 
 	router.POST("/delete-form", func(c *gin.Context) {
 		// Read form data from the request
-		name := c.PostForm("name")
-		id := c.PostForm("id")
-		age := c.PostForm("age")
 
-		intAge, _ := strconv.Atoi(age)
+		id := c.PostForm("id")
 		intId, _ := strconv.Atoi(id)
 
-		user1 := User{ID: uint(intId), Name: name, Age: intAge}
-		db.Create(&user1)
-
+		db.Where("ID = ?", intId).Delete(&User{}) // deletes data with Id = 4
 		// fmt.Println("Successfully inserted to database")
-		fmt.Println("Name:", name)
 		fmt.Println("Id:", id)
-		fmt.Println("Age:", age)
 
 	})
 
